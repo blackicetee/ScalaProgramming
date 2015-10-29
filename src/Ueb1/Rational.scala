@@ -5,20 +5,43 @@ package Ueb1
  */
 class Rational(numerator: Int, denominator: Int) {
   require(denominator != 0, "Denominator must be != 0") //Throws IllegalArgumentException
-  println("A rational was created ...") //Is part of the constructor
-  def this (denom: Int) = this(1, denom)
-  def num: Int = numerator //Getter for numerator
-  def denom: Int = denominator //Getter for denominator
-  def value: Double = (num.toDouble / denom) //Converting
+
+  //Is part of the constructor
+  println("A rational: " + numerator + "/" + denominator + " was created ...")
+  def this(denom: Int) = this(1, denom)
+
+  private def gcd(a: Int, b: Int): Int = if(b == 0)a else gcd(b, a % b)
+
+  //Getter for numerator
+  def num: Int = numerator / gcd(numerator, denominator)
+
+  //Getter for denominator
+  def denom: Int = denominator / gcd(numerator, denominator)
+
+  //Converting
+  def value: Double = (num.toDouble / denom)
+
+
   def add(y: Rational): Rational = new Rational(numerator * y.denom + y.num * denom, denominator * y.denom)
+  def +(other: Rational): Rational = new Rational(numerator * other.denom + other.num * denom, denominator * other.denom)
+
+  def sub(other: Rational): Rational = new Rational(numerator * other.denom - other.num * denom, denominator * other.denom)
+  def -(other: Rational): Rational = new Rational(numerator * other.denom - other.num * denom, denominator * other.denom)
+
+  def neg: Rational = new Rational(-num, denom)
+
   override def toString: String = num + "/" + denom
 }
 
-object Rational extends App {
-  println("Test rational class: ")
-  val rationalObj1 = new Rational(1,2)
-  println(rationalObj1.denom, rationalObj1.num, rationalObj1.value, rationalObj1.toString)
-  val x = new Rational(1, 2)
-  val y = x.add(new Rational(1, 6))
-  println(y.toString)
+object Rational {
+  def main(args: Array[String]): Unit = {
+    println("Test rational class: ")
+    val rationalObj1 = new Rational(1, 2)
+    println(rationalObj1.denom, rationalObj1.num, rationalObj1.value, rationalObj1.toString)
+    val x = new Rational(1, 2)
+    val y = x.add(new Rational(1, 6))
+    println(y.toString)
+    println(x.neg)
+  }
+
 }
