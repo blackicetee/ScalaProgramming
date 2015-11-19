@@ -10,7 +10,7 @@ import org.scalatest.junit.JUnitRunner
  */
 @RunWith(classOf[JUnitRunner])
 class TestRational extends FunSuite {
-  test("Rational Inititalisation:") {
+  test("Rational initialisation:") {
     val x = new Rational(1, 2)
     assert(x.toString === "1/2")
   }
