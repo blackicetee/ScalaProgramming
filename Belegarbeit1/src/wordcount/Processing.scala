@@ -87,12 +87,11 @@ class Processing {
     var indexListTuple = List[(String, Int)]()
     val indexList = getIndexWords(l)
     for (indexWord <- indexList) {
-      val pattern = new Regex(indexWord)
+      val pattern = new Regex("(\\(|\\s)" + indexWord + "(,|\\))")
       val temp = pattern.findAllIn(l.toString())
-      indexListTuple ::= (indexWord, 1)
+      indexListTuple ::= (indexWord, temp.length)
     }
-    val i = indexListTuple
-    Nil
+    indexListTuple
   }
 
 
@@ -215,8 +214,41 @@ class Processing {
       */
 
 
-    def countTheWordsMRGoogle(text: List[(Int, String)]): List[(String, Int)] = ???
+    def countTheWordsMRGoogle(text: List[(Int, String)]): List[(String, Int)] = {
+      val mapFun = (keyAndValue: (String, Int)) => {
+        var mappedList = List[(String, Int)]()
+          if (!keyAndValue._1.isEmpty) {
+            val t = keyAndValue._1.toLowerCase.replaceAll("[^a-z]", " ")
+            val temp = t.replaceAll("\\s+", " ")
+            val wl = temp.split(" ").toList
+            for (word <- wl) {
+              mappedList ::= (word, keyAndValue._2)
+            }
+          }
+        mappedList
+      }
 
+      val redFun = (keysAndValues: (String, List[Int])) => {
+        def recursiveSumListElements(l: List[Int], count: Int): Int = l match {
+          case Nil => count
+          case x::xs => recursiveSumListElements(xs , count + 1)
+        }
+        (keysAndValues._1, recursiveSumListElements(keysAndValues._2, 0))
+      }
+
+      val data = (text: List[(Int, String)], valueIn: Int) => {
+        var finalData = List[(String, Int)]()
+        for (row <- text) {
+          finalData ::= (row._2, valueIn)
+        }
+        finalData
+      }
+
+      //val i = redFun(("this", List(1,1,1,1)))
+      //mapFun(text, 1)
+      BasicOperations.mapReduce[String, Int, String, Int, String, Int](mapFun, redFun, data(text, 1))
+
+    }
   }
 
 
