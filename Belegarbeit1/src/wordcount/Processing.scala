@@ -86,12 +86,11 @@ class Processing {
     var indexListTuple = List[(String, Int)]()
     val indexList = getIndexWords(l)
     for (indexWord <- indexList) {
-      val pattern = new Regex(indexWord)
+      val pattern = new Regex("(\\(|\\s)" + indexWord + "(,|\\))")
       val temp = pattern.findAllIn(l.toString())
-      indexListTuple ::= (indexWord, 1)
+      indexListTuple ::= (indexWord, temp.length)
     }
-    val i = indexListTuple
-    Nil
+    indexListTuple
   }
 
 
@@ -152,7 +151,32 @@ class Processing {
       */
 
 
-    def countTheWordsMRGoogle(text: List[(Int, String)]): List[(String, Int)] = ???
+    def countTheWordsMRGoogle(text: List[(Int, String)]): List[(String, Int)] = {
+      val mapFun = (keyIn: List[(Int, String)], valueIn: Int) => {
+        var mappedList = List[(String, Int)]()
+        for (k <- keyIn) {
+          if (!k._2.isEmpty) {
+            val t = k._2.toLowerCase.replaceAll("[^a-z]", " ")
+            val temp = t.replaceAll("\\s+", " ")
+            val wl = temp.split(" ").toList
+            for (word <- wl) {
+              mappedList ::= (word, valueIn)
+            }
+          }
+        }
+        mappedList
+      }
+
+      val redFun = (keyMOut: String, valueMOut: List[String]) => {
+        val reducedList = List[(String, Int)]()
+
+      }
+
+      data:List[(KeyIn,ValueIn)]
+
+      //BasicOperations.mapReduce(mapFun(text, 1), redFun(), )
+      mapFun(text, 1)
+    }
 
   }
 

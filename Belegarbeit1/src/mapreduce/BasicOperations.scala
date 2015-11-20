@@ -25,7 +25,6 @@ object BasicOperations {
 					
 		reducer(redFun,sorter(mapper(mapFun, data)))
 		
-		
 	}
   	
 }
