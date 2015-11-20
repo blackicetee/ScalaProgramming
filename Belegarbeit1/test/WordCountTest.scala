@@ -92,6 +92,7 @@ class WordCountTest extends FunSuite{
     new teststrings{
     
        val result= proc.getAllWordsWithIndex(test_list)
+      println(result)
        assert (result.length===24)
        assert (result.sorted===wordsWithIndex)
     }
@@ -135,7 +136,16 @@ class WordCountTest extends FunSuite{
        assert (result===List())
     }
   }
-  
+  test("test and Conjunction 4"){
+
+    new teststrings{
+
+      val invInd= proc.createInverseIndex(proc.getAllWordsWithIndex(test_list))
+      val result= proc.andConjunction(List("this","test","contains", "this"), invInd)
+      assert (result===List(2))
+    }
+  }
+
   test("test or Conjunction 1"){
     
     new teststrings{
