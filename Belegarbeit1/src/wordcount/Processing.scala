@@ -152,32 +152,40 @@ class Processing {
 
 
     def countTheWordsMRGoogle(text: List[(Int, String)]): List[(String, Int)] = {
-      val mapFun = (keyIn: List[(Int, String)], valueIn: Int) => {
+      val mapFun = (keyAndValue: (String, Int)) => {
         var mappedList = List[(String, Int)]()
-        for (k <- keyIn) {
-          if (!k._2.isEmpty) {
-            val t = k._2.toLowerCase.replaceAll("[^a-z]", " ")
+          if (!keyAndValue._1.isEmpty) {
+            val t = keyAndValue._1.toLowerCase.replaceAll("[^a-z]", " ")
             val temp = t.replaceAll("\\s+", " ")
             val wl = temp.split(" ").toList
             for (word <- wl) {
-              mappedList ::= (word, valueIn)
+              mappedList ::= (word, keyAndValue._2)
             }
           }
-        }
         mappedList
       }
 
-      val redFun = (keyMOut: String, valueMOut: List[String]) => {
-        val reducedList = List[(String, Int)]()
-
+      val redFun = (keysAndValues: (String, List[Int])) => {
+        def recursiveSumListElements(l: List[Int], count: Int): Int = l match {
+          case Nil => count
+          case x::xs => recursiveSumListElements(xs , count + 1)
+        }
+        (keysAndValues._1, recursiveSumListElements(keysAndValues._2, 0))
       }
 
-      data:List[(KeyIn,ValueIn)]
+      val data = (text: List[(Int, String)], valueIn: Int) => {
+        var finalData = List[(String, Int)]()
+        for (row <- text) {
+          finalData ::= (row._2, valueIn)
+        }
+        finalData
+      }
 
-      //BasicOperations.mapReduce(mapFun(text, 1), redFun(), )
-      mapFun(text, 1)
+      //val i = redFun(("this", List(1,1,1,1)))
+      //mapFun(text, 1)
+      BasicOperations.mapReduce[String, Int, String, Int, String, Int](mapFun, redFun, data(text, 1))
+
     }
-
   }
 
 
