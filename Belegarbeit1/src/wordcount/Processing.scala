@@ -3,6 +3,7 @@ package wordcount
 import common._
 import mapreduce.BasicOperations
 
+import scala.collection.immutable.::
 import scala.util.matching.Regex
 import scala.util.matching.Regex.MatchIterator
 
@@ -109,7 +110,14 @@ class Processing {
 
       l.map(mapFun).foldLeft(base)(redFun)
 
-    def countTheWordsMR(l: List[String]): List[(String, Int)] = ???
+    def countTheWordsMR(l: List[String]): List[(String, Int)] = {
+      def insertL(l:List[(String, Int)], el:(String, Int)): List[(String, Int)] = l match {
+        case Nil => List(el)
+        case x::xs if (el._1.equals(x._1)) => (el._1, el._2 + x._2)::xs
+        case x::xs => x :: insertL(xs, el)
+      }
+      mapReduce[String, (String, Int), List[(String, Int)]](X=>(X,1), insertL, List(), l)
+    }
 
 
     /** ********************************************************************************************
@@ -119,27 +127,82 @@ class Processing {
       * ********************************************************************************************
       */
 
-    def getAllWordsWithIndex(l: List[(Int, String)]): List[(Int, String)] = ???
-
-    /*
+    def getAllWordsWithIndex(l: List[(Int, String)]): List[(Int, String)] = {
+      /*
      * Extracts all Words from a List containing tupels consisting
      * of a line number and a string
      */
-
+      var indexList = List[(Int, String)]()
+      for (element <- l){
+        if (!element._2.isEmpty){
+          for (word <- getWords(element._2)) {
+            indexList ::=(element._1, word)
+          }
+        }
+      }
+      indexList
+    }
 
     def createInverseIndex(l: List[(Int, String)]): Map[String, List[Int]] = {
-
-      ???
+      var inverseIndex = Map[String, List[Int]]()
+      for (elem <- getAllWordsWithIndex(l)){
+        if (inverseIndex.contains(elem._2) && !inverseIndex(elem._2).contains(elem._1)){
+          var lineNrs = inverseIndex(elem._2) :+ elem._1
+          inverseIndex += elem._2 -> lineNrs
+        }
+        else if (!inverseIndex.contains(elem._2)) {
+            var lineNrs = List[Int](elem._1)
+            inverseIndex += elem._2 -> lineNrs
+        }
+      }
+      inverseIndex
     }
 
     def andConjunction(words: List[String], invInd: Map[String, List[Int]]): List[Int] = {
-
-      ???
+      var lineNrs = List[Int]()
+      var validLineNrs = List[Int]()
+      for (word <- words){
+        if (invInd.contains(word)) {
+          if (lineNrs.isEmpty && validLineNrs.isEmpty){
+            lineNrs = invInd(word)
+            validLineNrs = invInd(word)
+          }else if (!lineNrs.isEmpty && validLineNrs.isEmpty){
+            for (word <- words){
+              if(!lineNrs.contains(word)) {
+                lineNrs :+ word
+                validLineNrs :+ word
+              }
+            }
+          }else {
+            for (lineNr <- validLineNrs) {
+              if (!invInd(word).contains(lineNr)) {
+                validLineNrs = validLineNrs.filter(_ != lineNr)
+              }
+            }
+          }
+        } else {
+          return List[Int]()
+        }
+      }
+      validLineNrs
     }
 
     def orConjunction(words: List[String], invInd: Map[String, List[Int]]): List[Int] = {
-
-      ???
+      var validLineNrs = List[Int]()
+      for (word <- words){
+        if (invInd.contains(word)) {
+          if (validLineNrs.isEmpty){
+            validLineNrs = invInd(word)
+          }else {
+            for (word <- words){
+              if(!validLineNrs.contains(word)) {
+                validLineNrs :+ word
+              }
+            }
+          }
+        }
+      }
+      validLineNrs
     }
 
 
