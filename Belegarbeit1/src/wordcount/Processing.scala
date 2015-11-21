@@ -233,7 +233,7 @@ class Processing {
           case Nil => count
           case x::xs => recursiveSumListElements(xs , count + 1)
         }
-        (keysAndValues._1, recursiveSumListElements(keysAndValues._2, 0))
+        List((keysAndValues._1, recursiveSumListElements(keysAndValues._2, 0)))
       }
 
       val data = (text: List[(Int, String)], valueIn: Int) => {
@@ -244,10 +244,7 @@ class Processing {
         finalData
       }
 
-      //val i = redFun(("this", List(1,1,1,1)))
-      //mapFun(text, 1)
       BasicOperations.mapReduce[String, Int, String, Int, String, Int](mapFun, redFun, data(text, 1))
-
     }
   }
 
