@@ -92,7 +92,6 @@ class WordCountTest extends FunSuite{
     new teststrings{
     
        val result= proc.getAllWordsWithIndex(test_list)
-      println(result)
        assert (result.length===24)
        assert (result.sorted===wordsWithIndex)
     }

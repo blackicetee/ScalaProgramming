@@ -8,6 +8,7 @@ import org.jfree.chart.JFreeChart
 import org.jfree.ui.ApplicationFrame
 import org.jfree.chart.ChartPanel
 import org.jfree.chart.renderer.xy.XYSplineRenderer
+import wordcount.Processing
 
 
 /**
@@ -26,10 +27,50 @@ class Sentiments (sentiFile:String){
    *********************************************************************************************
   */
 
-  def getDocumentGroupedByCounts(filename:String, wordCount:Int):List[(Int,List[String])]= ???
+  def getDocumentGroupedByCounts(filename:String, wordCount:Int):List[(Int,List[String])]= {
+    val proc = new Processing()
+    val url=getClass.getResource("/"+filename).getPath
+    val src = scala.io.Source.fromFile(url)
+    val iter = src.getLines()
+    val wordList:List[String] = (for (row <- iter) yield {proc.getWords(row)}).toList.flatten
+    src.close()
+    var tupelList = List[(Int, List[String])]()
+    var i: Int = 0
+    var j: Int = 1
+    var sectionWordList = List[String]()
+    for (k <- 0 to wordList.size - 1){
+      if (i < wordCount) {
+        i = i + 1
+        sectionWordList = sectionWordList :+ wordList(k)
+        if (k == wordList.size - 1){
+          tupelList = tupelList :+ (j, sectionWordList)
+        }
+      } else {
+        tupelList = tupelList :+ (j, sectionWordList)
+        sectionWordList = List[String](wordList(k))
+        j += 1
+        i = 1
+      }
+    }
+    tupelList
+  }
   
   
-  def analyzeSentiments(l:List[(Int,List[String])]):List[(Int, Double, Double)]= ???
+  def analyzeSentiments(l:List[(Int,List[String])]):List[(Int, Double, Double)]= {
+    var resultList = List[(Int, Double, Double)]()
+    for (section <- l){
+      var usedwords:Double = 0
+      var sentimentValue:Double = 0
+      for (word <- section._2){
+        if (sentiments.contains(word)){
+          usedwords = usedwords + 1
+          sentimentValue = sentimentValue + sentiments(word)
+        }
+      }
+      resultList :+ (section._1, sentimentValue, usedwords)
+    }
+    resultList
+  }
   
   /**********************************************************************************************
    *
