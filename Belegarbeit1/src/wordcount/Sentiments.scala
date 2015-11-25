@@ -67,7 +67,7 @@ class Sentiments (sentiFile:String){
           sentimentValue = sentimentValue + sentiments(word)
         }
       }
-      resultList :+ (section._1, sentimentValue, usedwords)
+      resultList = resultList :+ (section._1, sentimentValue, usedwords)
     }
     resultList
   }
