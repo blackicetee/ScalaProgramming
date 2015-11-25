@@ -60,16 +60,12 @@ class Processing {
      *
      * Hint: Use the flatMap function
      */
-    val result = l.flatMap(x => getWords(x._2))
-    result.filter(_.nonEmpty)
+    l.flatMap(x => getWords(x._2)).filter(_.nonEmpty)
   }
 
-  def countTheWords(l: List[String]): List[(String, Int)] = {
-    //l.groupBy(x => x).map(t => (t._1, t._2.length)).toList
-    /*
-     *  Gets a list of words and counts the occurences of the individual words
-     */
-    def getIndexWords(l: List[String]): List[String] = {
+
+  /* OLD IMPERATIVE STYLE OF countTheWords()
+      def getIndexWords(l: List[String]): List[String] = {
       def checkIfWordIsInList(word: String, list: List[String]): Boolean = {
         if (list.isEmpty) {
           false
@@ -94,6 +90,14 @@ class Processing {
       indexListTuple ::=(indexWord, temp.length)
     }
     indexListTuple
+
+   */
+  def countTheWords(l: List[String]): List[(String, Int)] = {
+    /*
+     *  Gets a list of words and counts the occurences of the individual words
+     */
+    //l.groupBy(x => x) gibt eine Map[K, List(String)] zurück
+    l.groupBy(x => x).map(t => (t._1, t._2.length)).toList
   }
 
 
