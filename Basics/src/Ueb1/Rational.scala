@@ -28,7 +28,7 @@ class Rational(numerator: Int, denominator: Int) {
   def sub(other: Rational): Rational = new Rational(numerator * other.denom - other.num * denom, denominator * other.denom)
   def -(other: Rational): Rational = new Rational(numerator * other.denom - other.num * denom, denominator * other.denom)
 
-  def neg: Rational = new Rational(-num, denom)
+  def neg: Rational = new Rational(0 - num, denom)
 
   override def toString: String = num + "/" + denom
 }

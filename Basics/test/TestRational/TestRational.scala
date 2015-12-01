@@ -33,6 +33,7 @@ class TestRational extends FunSuite {
       y.toString
     }
   }
+
   test("Test Neg: neg(1/3) = -1/3") {
     val x = new Rational(1, 3)
     val y = x.neg
