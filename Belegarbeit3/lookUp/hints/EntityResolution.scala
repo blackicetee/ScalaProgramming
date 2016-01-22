@@ -2,6 +2,7 @@ package textanalyse
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
 import org.apache.spark.broadcast.Broadcast
 
 class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile:String, goldStandardFile:String){

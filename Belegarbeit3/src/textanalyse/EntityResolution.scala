@@ -2,7 +2,10 @@ package textanalyse
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
 import org.apache.spark.broadcast.Broadcast
+
+import scala.collection
 
 class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile:String, goldStandardFile:String){
 
@@ -25,7 +28,8 @@ class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile
      * getTokens soll die Funktion tokenize auf das gesamte RDD anwenden
      * und aus allen Produktdaten eines RDDs die Tokens extrahieren.
      */
-    ???
+    val stopWords_ = this.stopWords
+    data.map(x => (x._1, EntityResolution.tokenize(x._2, stopWords_)))
   }
   
   def countTokens(data:RDD[(String,List[String])]):Long={
@@ -35,7 +39,7 @@ class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile
      * Duplikate sollen dabei nicht eliminiert werden
      */
     
-    ???
+    data.map(_._2.size).sum.toLong
   }
   
   def findBiggestRecord(data:RDD[(String,List[String])]):(String,List[String])={
@@ -43,7 +47,7 @@ class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile
     /*
      * Findet den Datensatz mit den meisten Tokens
      */
-    ???
+    data.collect().maxBy(_._2.size)
   }
   def createCorpus={
     
@@ -52,7 +56,7 @@ class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile
      * (amazonRDD und googleRDD) und vereinigt diese und speichert das
      * Ergebnis in corpusRDD
      */
-    ???
+    corpusRDD = getTokens(amazonRDD).union(getTokens(googleRDD)).cache();
   }
   
   
@@ -62,7 +66,17 @@ class EntityResolution (sc:SparkContext, dat1:String, dat2:String, stopwordsFile
      * Berechnung des IDF-Dictionaries auf Basis des erzeugten Korpus
      * Speichern des Dictionaries in die Variable idfDict
      */
-    ???
+
+    def numOfDocWhereTokenAppearsIn(token: String, documentCorpus: RDD[(String, List[String])]): Long = {
+      documentCorpus.filter(_._2.contains(token)).count()
+    }
+
+    def getUniqueTokens(c: RDD[(String, List[String])]): List[String] = {
+      c.map(_._2).reduce((l, r) => l:::r).distinct
+    }
+    val countOfAllDOcsInCorpusRDD = corpusRDD.count().toDouble
+    val uniqueTokens = getUniqueTokens(corpusRDD)
+    idfDict = uniqueTokens.map(x => (x, Math.log(countOfAllDOcsInCorpusRDD / numOfDocWhereTokenAppearsIn(x, corpusRDD)))).toMap
   }
 
  
@@ -122,7 +136,7 @@ object EntityResolution{
    	* und entfernt dabei alle Stopwords.
    	* Verwenden Sie zum Aufsplitten die Methode Utils.tokenizeString
    	*/
-     ???
+      Utils.tokenizeString(s).filter(!stopws.contains(_))
    }
 
   def getTermFrequencies(tokens:List[String]):Map[String,Double]={
@@ -131,8 +145,7 @@ object EntityResolution{
      * Berechnet die Relative Haeufigkeit eine Wortes in Bezug zur
      * Menge aller Wörter innerhalb eines Dokuments 
      */
-    
-    ???
+    tokens.map(x=> (x, tokens.filter(_ == x).size.toDouble / tokens.size)).toMap
   }
    
   def computeSimilarity(record:((String, String),(String, String)), idfDictionary:Map[String,Double], stopWords:Set[String]):(String, String,Double)={

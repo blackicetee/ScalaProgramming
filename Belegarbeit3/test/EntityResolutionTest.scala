@@ -4,6 +4,7 @@ import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfterAll
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -38,6 +39,8 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     conf.set("spark.driver.memory", "2g")
 
     sc= new SparkContext(conf)
+
+
     entityResolution= new EntityResolution(sc, dat1, dat2, stopwordsFile,goldStandardFile)
     //amazon_small= Utils.getData(dat1, sc).cache
     //google_small= Utils.getData(dat2, sc).cache
@@ -116,38 +119,43 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     val nr_google= entityResolution.countTokens(googleRecToToken)
     assert((nr_amazon+nr_google)===22520)
   }  
-  
+
+
   test("Test Biggest Record"){
     
     val rec= entityResolution.findBiggestRecord(amazonRecToToken)
     assert(rec._1==="b000o24l3q")
     assert(rec._2.size===1547)
-  }    
-  
+  }
+
+
   test("Test Calculation of Term Frequency"){
 
     val s="This is test Test and this is another test test."
     val expected=Map("test" -> 0.4, "this" -> 0.2, "is" -> 0.2, "another" -> 0.1, "and" -> 0.1)
     val res= EntityResolution.getTermFrequencies(Utils.tokenizeString(s))
     assert(res===expected)
-  }    
-  
+  }
+
+
   test("Test Create Corpus"){
     
    entityResolution.createCorpus
    val nr= entityResolution.corpusRDD.count
    assert(nr===400)
   }
-  
+
   test("Test Calculate Inverse Document Frequencies"){
     
     val idfs_SmallRDD= entityResolution.calculateIDF
-    //val res= entityResolution.idfDict.collectAsMap.toMap
+    //val res= sc.parallelize(entityResolution.idfDict.toSeq)
     assert(entityResolution.idfDict.size===4772)
-    //entityResolution.idfDict.takeOrdered(10)(Ordering.by[(String,Double),Double](_._2)).foreach(println)
+    //res.takeOrdered(10)(Ordering.by[(String,Double),Double](_._2)).foreach(println)
+
   
   }
-  
+
+  /**
   test("Test TF IDF-Caluclation"){
     
     val recb000hkgj8k = amazonRecToToken.filter(_._1 == "b000hkgj8k").collect()(0)._2
@@ -216,6 +224,6 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
      if (sc!=null) {sc.stop; println("Spark stopped......")}
      else println("Cannot stop spark - reference lost!!!!")
   }
-
+  */
 }
 

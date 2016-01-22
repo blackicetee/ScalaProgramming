@@ -13,7 +13,7 @@ import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ScalableEntityResolutionTest extends FunSuite with BeforeAndAfterAll{
- 
+ /**
   var conf:org.apache.spark.SparkConf=_
   var sc:SparkContext=_
   
@@ -125,5 +125,6 @@ class ScalableEntityResolutionTest extends FunSuite with BeforeAndAfterAll{
 
      if (sc!=null) {sc.stop; println("Spark stopped......")}
      else println("Cannot stop spark - reference lost!!!!")
-  } 
+  }
+   */
 }
