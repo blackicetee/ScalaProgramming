@@ -1,12 +1,9 @@
 package test
 
-import org.scalatest.FunSuite
-import org.scalatest.BeforeAndAfterAll
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.junit.runner.RunWith
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.scalatest.junit.JUnitRunner
 import textanalyse._
 
@@ -155,7 +152,7 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
   
   }
 
-  /**
+
   test("Test TF IDF-Caluclation"){
     
     val recb000hkgj8k = amazonRecToToken.filter(_._1 == "b000hkgj8k").collect()(0)._2
@@ -164,7 +161,7 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
         ("2007"-> 3.5087719298245617),("customizing"->16.666666666666664),("interface"->3.0303030303030303))
     assert(rec_b000hkgj8k_weights===expected)    
   }
-  
+
   test("Test Dot Product"){
     
     val v1:Map[String,Double] = Map(("a"-> 4.0), ("c"-> 5), ("b"-> 7))
@@ -172,14 +169,14 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     val res = EntityResolution.calculateDotProduct(v1, v2)
     assert(res===358)
   }
-  
+
   test("Test Norm Calc"){
     
     val vec:Map[String,Double] = Map(("a"-> 4), ("c"-> 5), ("b"-> 7))
     val res = EntityResolution.calculateNorm(vec)
     assert(Math.abs(res-9.486832980505)<0.000001)
   }
-  
+
   test("Test Cosinus Similarity"){
     
     val v1:Map[String,Double] = Map(("a"-> 4), ("c"-> 5), ("b"-> 7))
@@ -187,7 +184,7 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     val res = EntityResolution.calculateCosinusSimilarity(v1,v2)
     assert(Math.abs(res-0.35805743701971)<0.000001)
   }
-  
+
   test("Test Document Similarity"){
       
     val res = EntityResolution.calculateDocumentSimilarity("Adobe Photoshop", "Adobe Illustrator", entityResolution.idfDict,entityResolution.stopWords)
@@ -201,7 +198,7 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     println(res)
     assert(Math.abs(res-0.000303171940451)<0.000001)
   }
-
+  /**
   test("Test Simple Similarity Calculation with Broadcast"){
     
     val sim= entityResolution.simpleSimimilarityCalculationWithBroadcast
