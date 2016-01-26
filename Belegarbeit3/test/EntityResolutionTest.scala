@@ -60,7 +60,7 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     entityResolution.goldStandard.take(10).foreach(println)
     assert(entityResolution.goldStandard.count()===1300)
   }
-  
+
   test("Test tokenizeString 0"){
     
     val s=""
@@ -198,7 +198,7 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
     println(res)
     assert(Math.abs(res-0.000303171940451)<0.000001)
   }
-  /**
+
   test("Test Simple Similarity Calculation with Broadcast"){
     
     val sim= entityResolution.simpleSimimilarityCalculationWithBroadcast
@@ -221,6 +221,5 @@ class EntityResolutionTest  extends FunSuite with BeforeAndAfterAll{
      if (sc!=null) {sc.stop; println("Spark stopped......")}
      else println("Cannot stop spark - reference lost!!!!")
   }
-  */
 }
 

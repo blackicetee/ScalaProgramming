@@ -92,7 +92,7 @@ class EntityResolution(sc: SparkContext, dat1: String, dat2: String, stopwordsFi
     val stopWords_ = this.stopWords
     val idfDict_ = this.idfDict
     val cartesianProduct = amazonRDD_.cartesian(googleRDD_)
-    cartesianProduct.map(x => (x._1._1, x._2._1, EntityResolution.calculateDocumentSimilarity(x._1._2, x._2._2, idfDict_, stopWords_)))
+    cartesianProduct.map(x => EntityResolution.computeSimilarity((x._1, x._2), idfDict_, stopWords_))
   }
 
   def findSimilarity(vendorID1: String, vendorID2: String, sim: RDD[(String, String, Double)]): Double = {
@@ -105,7 +105,10 @@ class EntityResolution(sc: SparkContext, dat1: String, dat2: String, stopwordsFi
 
   def simpleSimimilarityCalculationWithBroadcast: RDD[(String, String, Double)] = {
 
-    ???
+    val idfDict_ = sc.broadcast(this.idfDict)
+    val cartesianProd = this.amazonRDD.cartesian(this.googleRDD)
+    val stopWords_ = this.stopWords
+    cartesianProd.map(x => EntityResolution.computeSimilarityWithBroadcast((x._1, x._2), idfDict_, stopWords_))
   }
 
   /*
@@ -127,8 +130,14 @@ class EntityResolution(sc: SparkContext, dat1: String, dat2: String, stopwordsFi
      * (AnzDuplikate, avgCosinus-SimilaritätDuplikate,avgCosinus-SimilaritätNicht-Duplikate)
      */
 
-
-    ???
+      val simpleSim = simpleSimimilarityCalculationWithBroadcast
+      val goldL = goldStandard.collect.toList
+      val simDup = simpleSim.filter(X=>(goldL.map(X=>X._1).contains(X._1 + " " + X._2)))
+      val duplicateCount = simDup.count()
+      val avgSimDup = simDup.map(_._3).sum/simDup.count()
+      val simNDup = simpleSim.filter(X=>(goldL.map(X=>X._1).contains(X._1 + " " + X._2))==false)
+      val avgSimNDup = simNDup.map(_._3).sum/simNDup.count()
+      (duplicateCount, avgSimDup, avgSimNDup)
   }
 }
 
@@ -159,7 +168,7 @@ object EntityResolution {
      * Rufen Sie in dieser Funktion calculateDocumentSimilarity auf, in dem
      * Sie die erforderlichen Parameter extrahieren
      */
-    ???
+    (record._1._1, record._2._1, calculateDocumentSimilarity(record._1._2, record._2._2, idfDictionary, stopWords))
   }
 
   def calculateTF_IDF(terms: List[String], idfDictionary: Map[String, Double]): Map[String, Double] = {
@@ -213,6 +222,7 @@ object EntityResolution {
      * Sie die erforderlichen Parameter extrahieren
      * Verwenden Sie die Broadcast-Variable.
      */
-    ???
+    val idfDictionary = idfBroadcast.value
+    (record._1._1, record._2._1, calculateDocumentSimilarity(record._1._2, record._2._2, idfDictionary, stopWords))
   }
 }
