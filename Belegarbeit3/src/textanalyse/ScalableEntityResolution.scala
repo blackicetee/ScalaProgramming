@@ -1,20 +1,15 @@
 package textanalyse
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.SparkContext
+import org.apache.spark.{Accumulator, SparkContext}
 import org.apache.spark.SparkContext._
 import org.apache.spark.broadcast.Broadcast
-import org.apache.spark.AccumulatorParam
-import org.apache.spark.Accumulator
-import org.jfree.data.xy.XYSeries
-import org.jfree.data.xy.XYSeriesCollection
-import org.jfree.chart.renderer.xy.XYDotRenderer
+import org.apache.spark.rdd.RDD
+import org.jfree.chart.{ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.plot.XYPlot
-import org.jfree.chart.JFreeChart
-import org.jfree.ui.ApplicationFrame
-import org.jfree.chart.ChartPanel
 import org.jfree.chart.renderer.xy.XYSplineRenderer
+import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
+import org.jfree.ui.ApplicationFrame
 
 
 class ScalableEntityResolution(sc:SparkContext, dat1:String, dat2:String, stopwordsFile:String, goldStandardFile:String)  extends EntityResolution(sc,dat1,dat2,stopwordsFile,goldStandardFile) {  
@@ -22,11 +17,12 @@ class ScalableEntityResolution(sc:SparkContext, dat1:String, dat2:String, stopwo
   // Creation of the tf-idf-Dictionaries
   createCorpus
   calculateIDF
+  amazonTokens = getTokens(amazonRDD)
+  googleTokens = getTokens(googleRDD)
   val idfsFullBroadcast = sc.broadcast(idfDict)
 
   // Preparation of all Document Vectors
   def calculateDocumentVector(productTokens:RDD[(String,List[String])],idfDictBroad:Broadcast[Map[String,Double]]):RDD[(String,Map[String,Double])]={
-    
     productTokens.map(x=> (x._1,ScalableEntityResolution.calculateTF_IDFBroadcast(x._2,idfDictBroad)))
   }
   
@@ -75,7 +71,10 @@ class ScalableEntityResolution(sc:SparkContext, dat1:String, dat2:String, stopwo
      * Ergebnisse in amazonInvPairsRDD und googleInvPairsRDD. Cachen Sie die 
      * die Werte.
      */
-    ???
+    val amazonWeightsRDD_ = this.amazonWeightsRDD
+    val googleWeightsRDD_ = this.googleWeightsRDD
+    this.amazonInvPairsRDD = amazonWeightsRDD_.flatMap(ScalableEntityResolution.invert(_)).cache
+    this.googleInvPairsRDD = googleWeightsRDD_.flatMap(ScalableEntityResolution.invert(_)).cache
   }
   
   def determineCommonTokens:Unit={
@@ -84,8 +83,9 @@ class ScalableEntityResolution(sc:SparkContext, dat1:String, dat2:String, stopwo
      * Bestimmen Sie alle Produktkombinationen, die gemeinsame Tokens besitzen
      * Speichern Sie das Ergebnis in die Variable commonTokens und verwenden Sie
      * dazu die Funktion swap aus dem object.
+     * X=>(X._1,X._2.split(" "))
      */
-    ???
+    this.commonTokens = this.amazonInvPairsRDD.join(this.googleInvPairsRDD).map(X=>ScalableEntityResolution.swap(X)).reduceByKey((X:String,Y:String)=>(X+" "+Y)).map(x => (x._1, x._2.split(" ").toIterable))
   }
   
   def calculateSimilaritiesFullDataset:Unit={
@@ -101,8 +101,10 @@ class ScalableEntityResolution(sc:SparkContext, dat1:String, dat2:String, stopwo
      * fastCosinusSimilarity im object
      * Speichern Sie das Ergebnis in der Variable simsFillValuesRDD und cachen sie diese.
      */
-    
-    ???
+
+    val amazonNormsBroadcast_ = this.amazonNormsBroadcast
+    val googleNormsBroadcast_ = this.googleNormsBroadcast
+    this.similaritiesFullRDD = this.commonTokens.map(X=>ScalableEntityResolution.fastCosinusSimilarity(X, this.amazonWeightsBroadcast,this.googleWeightsBroadcast, amazonNormsBroadcast_, googleNormsBroadcast_))
   }
   
   /*
@@ -238,7 +240,8 @@ object ScalableEntityResolution{
      * Berechnung von TF-IDF Wert für eine Liste von Wörtern
      * Ergebnis ist eine Map die auf jedes Wort den zugehörigen TF-IDF-Wert mapped
      */
-    ???    
+      val idfDictionary = idfDictBroadcast.value
+      EntityResolution.getTermFrequencies(terms).map(x => (x._1, x._2 * idfDictionary.getOrElse(x._1, 0.0)))
   }
     
   def invert(termlist:(String, Map[String,Double])):List[(String,String)]={

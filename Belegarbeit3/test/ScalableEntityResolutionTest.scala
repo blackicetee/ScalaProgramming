@@ -1,19 +1,14 @@
 package test
 
-import org.scalatest.FunSuite
-import org.scalatest.BeforeAndAfterAll
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.scalatest.junit.JUnitRunner
-import textanalyse._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import textanalyse.ScalableEntityResolution
 
 @RunWith(classOf[JUnitRunner])
 class ScalableEntityResolutionTest extends FunSuite with BeforeAndAfterAll{
- /**
+
   var conf:org.apache.spark.SparkConf=_
   var sc:SparkContext=_
   
@@ -44,27 +39,29 @@ class ScalableEntityResolutionTest extends FunSuite with BeforeAndAfterAll{
     assert(entityResolutionScalable.idfDict.size===17078)
     assert(entityResolutionScalable.goldStandard.count===1300)
   }
-  
+
   test("Test Scalable TFIDF Calculation"){
     
     assert(entityResolutionScalable.amazonWeightsRDD.count===1363)
     assert(entityResolutionScalable.googleWeightsRDD.count===3226)
   }
-  
+
+
   test("Invert Function Test"){
     
     val in= ("hello",Map(("dies"->1.0), ("ist"->2.0), ("ein"->3.0),("Test"->4.0)))
     val out= List(("dies","hello"), ("ist","hello"), ("ein","hello"), ("Test","hello"))
     assert(ScalableEntityResolution.invert(in)===out)
   }
-  
+
   test("Test Inverse Index Creation"){
     
     entityResolutionScalable.buildInverseIndex
     assert(entityResolutionScalable.amazonInvPairsRDD.count===111387)
     assert(entityResolutionScalable.googleInvPairsRDD.count===77678)  
   }
-  
+
+
   test("Swap Test"){
     
     val res=ScalableEntityResolution.swap(("say",("hello","world")))
@@ -77,7 +74,8 @@ class ScalableEntityResolutionTest extends FunSuite with BeforeAndAfterAll{
     assert(entityResolutionScalable.commonTokens.count===2441100)
     // alle waeren 4397038 
   }
-  
+
+  /**
   test("Test Similarity Calculation on full dataset"){
      
     entityResolutionScalable.calculateSimilaritiesFullDataset
@@ -120,11 +118,11 @@ class ScalableEntityResolutionTest extends FunSuite with BeforeAndAfterAll{
     accvec+=ll
     assert(accvec.value===Vector(2,4,6,8))
   }
-  
+    */
   override protected def afterAll() {
 
      if (sc!=null) {sc.stop; println("Spark stopped......")}
      else println("Cannot stop spark - reference lost!!!!")
   }
-   */
+
 }
