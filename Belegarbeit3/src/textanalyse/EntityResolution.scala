@@ -195,7 +195,8 @@ object EntityResolution {
     /*
      * Berechnung der Norm eines Vectors
      */
-    Math.sqrt(((for (el <- vec.values) yield el * el).sum))
+    //Math.sqrt(((for (el <- vec.values) yield el * el).sum))
+    Math.sqrt(vec.map(x=> x._2 * x._2).sum)
   }
 
   def calculateCosinusSimilarity(doc1: Map[String, Double], doc2: Map[String, Double]): Double = {
